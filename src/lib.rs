@@ -21,6 +21,10 @@ pub trait Renderer {
     unsafe fn update(&mut self, gl: &glow::Context);
 
     unsafe fn cleanup(&mut self, gl: &glow::Context);
+
+    unsafe fn resize(&mut self, gl: &glow::Context, x: i32, y: i32) {
+        gl.viewport(0, 0, x, y);
+    }
 }
 
 pub fn run_program<Render: Renderer + 'static>() {
@@ -88,9 +92,8 @@ pub fn run_program<Render: Renderer + 'static>() {
                     Event::WindowEvent { ref event, .. } => match event {
                         WindowEvent::Resized(physical_size) => {
                             window.resize(*physical_size);
-                            gl.viewport(
-                                0,
-                                0,
+                            renderer.resize(
+                                &gl,
                                 physical_size.width as i32,
                                 physical_size.height as i32,
                             );

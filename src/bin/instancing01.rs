@@ -59,17 +59,10 @@ impl Renderer for Instancing {
         gl.use_program(Some(program));
 
         let vao = gl.create_vertex_array().unwrap();
-        let vbo = gl.create_buffer().unwrap();
-
-        for (i, offset) in offsets.iter().enumerate() {
-            let uniform_location = gl.get_uniform_location(program, &format!("offsets[{}]", i));
-            gl.uniform_2_f32(uniform_location.as_ref(), offset.x, offset.y);
-        }
-
-        gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
-
         gl.bind_vertex_array(Some(vao));
 
+        let vbo = gl.create_buffer().unwrap();
+        gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
         gl.buffer_data_u8_slice(
             glow::ARRAY_BUFFER,
             QUAD_VERTS.as_mem_bytes(),
@@ -87,6 +80,17 @@ impl Renderer for Instancing {
         );
         gl.enable_vertex_attrib_array(0);
         gl.enable_vertex_attrib_array(1);
+
+        let offset_buffer = gl.create_buffer().unwrap();
+        gl.bind_buffer(glow::ARRAY_BUFFER, Some(offset_buffer));
+        gl.buffer_data_u8_slice(
+            glow::ARRAY_BUFFER,
+            &offsets.as_mem_bytes(),
+            glow::STATIC_DRAW,
+        );
+        gl.vertex_attrib_pointer_f32(2, 2, glow::FLOAT, false, 2 * size_of::<f32>() as i32, 0);
+        gl.vertex_attrib_divisor(2, 1);
+        gl.enable_vertex_attrib_array(2);
 
         Self { program, vao, vbo }
     }
